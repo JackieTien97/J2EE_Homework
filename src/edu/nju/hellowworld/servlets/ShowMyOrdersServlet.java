@@ -79,8 +79,6 @@ public class ShowMyOrdersServlet extends HttpServlet {
 	}
 
 	private void processRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		resp.setContentType("text/html;charset=utf-8");
-		req.setCharacterEncoding("UTF-8");
 		
 		HttpSession session = req.getSession(false);
 

@@ -83,7 +83,6 @@ public class Login extends HttpServlet {
 			}
 		}
 
-		response.setContentType("text/html;charset=utf-8");
 		PrintWriter out = response.getWriter();
 		out.println("<html><body>");
 
@@ -102,12 +101,10 @@ public class Login extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		request.setCharacterEncoding("UTF-8");
-		response.setContentType("text/html;charset=utf-8");
 		
 		String username = request.getParameter("login");
 		String password = request.getParameter("password");
-		
+	
 		if (username.isEmpty() || password.isEmpty()) { // 用户名或密码为空
 			PrintWriter out = response.getWriter();
 			out.println("<html><body>");
@@ -180,7 +177,7 @@ public class Login extends HttpServlet {
 						}
 					}
 				}
-				if (session == null) {
+				if (session == null || !username.equals(session.getAttribute("login"))) {
 					if (cookieFound) { // If the cookie exists update the value only
 						// if changed
 						if (!username.equals(cookie.getValue())) {
@@ -192,7 +189,6 @@ public class Login extends HttpServlet {
 						// If the cookie does not exist, create it and set value
 						cookie = new Cookie("LoginCookie", username);
 						cookie.setMaxAge(Integer.MAX_VALUE);
-						System.out.println("Add cookie");
 						response.addCookie(cookie);
 					}
 					// create a session to show that we are logged in
@@ -200,6 +196,10 @@ public class Login extends HttpServlet {
 					session.setAttribute("login", username);
 					
 					request.setAttribute("login", username);
+					RequestDispatcher requestDispatcher = request.getRequestDispatcher("/ShowMyOrders?page=0");
+					requestDispatcher.forward(request, response);
+				}
+				else {
 					RequestDispatcher requestDispatcher = request.getRequestDispatcher("/ShowMyOrders?page=0");
 					requestDispatcher.forward(request, response);
 				}
