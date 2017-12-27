@@ -11,6 +11,7 @@ import java.util.Properties;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
@@ -58,9 +59,21 @@ public class Login extends HttpServlet {
 			throws ServletException, IOException {
 
 		String login = "";
-		HttpSession session = request.getSession(false);
+		HttpSession session = request.getSession(true);
+		session.setMaxInactiveInterval(60);
+		if (session.getAttribute("guest") != null) {
+			if (!(Boolean)session.getAttribute("guest")) {
+				response.sendRedirect(request.getContextPath() + "/ShowMyOrders?page=0");
+			}
+		}
+		else {
+			session.setAttribute("guest", true);
+		}
+		
 		Cookie cookie = null;
 		Cookie[] cookies = request.getCookies();
+		ServletContext servletContext = getServletContext();
+		
 
 
 		if (null != cookies) {
@@ -91,8 +104,11 @@ public class Login extends HttpServlet {
 		out.println("login: <input type='text' name='login' value='" + login + "'>");
 		out.println("password: <input type='password' name='password' value=''>");
 		out.println("<input type='submit' name='Submit' value='Submit'>");
-		out.println("</form></body></html>");
-
+		out.println("</form>");
+		out.println("<p>总人数: " + servletContext.getAttribute("total_people") + "</p>");
+		out.println("<p>已登录人数: " + servletContext.getAttribute("login_people") + "</p>");
+		out.println("<p>游客人数: " + servletContext.getAttribute("guest") + "</p>");
+		out.println("</body></html>");
 	}
 
 	/**
@@ -104,6 +120,7 @@ public class Login extends HttpServlet {
 		
 		String username = request.getParameter("login");
 		String password = request.getParameter("password");
+		ServletContext servletContext = getServletContext();
 	
 		if (username.isEmpty() || password.isEmpty()) { // 用户名或密码为空
 			PrintWriter out = response.getWriter();
@@ -113,11 +130,14 @@ public class Login extends HttpServlet {
 					+ response.encodeURL(request.getContextPath() + "/Login") + "'>");
 			out.println("login: <input type='text' name='login' value='" + username + "'>");
 			out.println("password: <input type='password' name='password' value='" + password + "'>");
-			out.println("<input type='submit' name='Submit' value='Submit'>");
+			out.println("<input type='submit' name='Submit' value='Submit'></form>");
 
 			out.println("<p>用户名或密码不能为空</p>");
 
-			out.println("</form></body></html>");
+			out.println("<p>总人数: " + servletContext.getAttribute("total_people") + "</p>");
+			out.println("<p>已登录人数: " + servletContext.getAttribute("login_people") + "</p>");
+			out.println("<p>游客人数: " + servletContext.getAttribute("guest") + "</p>");
+			out.println("</body></html>");
 		}
 		else {
 			Connection connection = null;
@@ -178,6 +198,16 @@ public class Login extends HttpServlet {
 					}
 				}
 				if (session == null || !username.equals(session.getAttribute("login"))) {
+					if (session.getAttribute("login") == null) {
+						session.setAttribute("guest", false);
+						int guest = (Integer)servletContext.getAttribute("guest");
+						guest--;
+						int login_people = (Integer)servletContext.getAttribute("login_people");
+						login_people++;
+						System.out.println("guest become login");
+						servletContext.setAttribute("login_people", login_people);
+						servletContext.setAttribute("guest", guest);
+					}
 					if (cookieFound) { // If the cookie exists update the value only
 						// if changed
 						if (!username.equals(cookie.getValue())) {
@@ -200,6 +230,14 @@ public class Login extends HttpServlet {
 					requestDispatcher.forward(request, response);
 				}
 				else {
+					session.setAttribute("guest", false);
+					int guest = (Integer)servletContext.getAttribute("guest");
+					guest--;
+					int login_people = (Integer)servletContext.getAttribute("login_people");
+					login_people++;
+					System.out.println("guest become login");
+					servletContext.setAttribute("login_people", login_people);
+					servletContext.setAttribute("guest", guest);
 					RequestDispatcher requestDispatcher = request.getRequestDispatcher("/ShowMyOrders?page=0");
 					requestDispatcher.forward(request, response);
 				}
@@ -212,11 +250,15 @@ public class Login extends HttpServlet {
 						+ response.encodeURL(request.getContextPath() + "/Login") + "'>");
 				out.println("login: <input type='text' name='login' value='" + username + "'>");
 				out.println("password: <input type='password' name='password' value=''>");
-				out.println("<input type='submit' name='Submit' value='Submit'>");
+				out.println("<input type='submit' name='Submit' value='Submit'></form>");
 
 				out.println("<p>用户名或密码错误</p>");
+				
+				out.println("<p>总人数: " + servletContext.getAttribute("total_people") + "</p>");
+				out.println("<p>已登录人数: " + servletContext.getAttribute("login_people") + "</p>");
+				out.println("<p>游客人数: " + servletContext.getAttribute("guest") + "</p>");
 
-				out.println("</form></body></html>");
+				out.println("</body></html>");
 			}
 		}
 		

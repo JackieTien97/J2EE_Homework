@@ -14,7 +14,7 @@ import java.util.Properties;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -157,10 +157,14 @@ public class ShowMyOrdersServlet extends HttpServlet {
 
 	public void displayLogoutPage(HttpServletRequest req, HttpServletResponse res) throws IOException {
 		PrintWriter out = res.getWriter();
+		ServletContext servletContext = getServletContext();
 		out.println("<form method='GET' action='" + res.encodeURL(req.getContextPath() + "/Login") + "'>");
 		out.println("</p>");
 		out.println("<input type='submit' name='Logout' value='Logout'>");
 		out.println("</form>");
+		out.println("<p>总人数: " + servletContext.getAttribute("total_people") + "</p>");
+		out.println("<p>已登录人数: " + servletContext.getAttribute("login_people") + "</p>");
+		out.println("<p>游客人数: " + servletContext.getAttribute("guest") + "</p>");
 		out.println("</body></html>");
 	}
 
